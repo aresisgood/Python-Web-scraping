@@ -41,12 +41,13 @@ def enter_reader(driver):
 
 
 def run_scapre(driver, folder_name="manga_screenshots"):
-
-if not os.path.exists(folder_name):
-    os.makedirs(folder_name)
-    print(f"已建立資料夾：{folder_name}")
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+        print(f"已建立資料夾：{folder_name}")
+    
     wait_element = WebDriverWait(driver, 10)
     total_image_count = 0
+    
     while True:
         image_elements = driver.find_elements(By.CSS_SELECTOR, "div.page_unit.page_image")
 
