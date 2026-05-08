@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
 
-def options_set():
+def get_chrome_options():
     options = webdriver.ChromeOptions()
     options.add_experimental_option("excludeSwitches", ["enable-automation"]) # 隱藏「Chrome 正在受到自動測試軟體控制」的提示
     options.add_experimental_option("useAutomationExtension", False) # 停用自動化擴充功能
@@ -18,7 +18,9 @@ def options_set():
     options.add_argument("--incognito") # 無痕模式
     options.add_argument("--disable-popup-blocking") # 停用 Chrome 的彈窗阻擋功能。
     options.add_argument("--disable-blink-features=AutomationControlled") # 關閉自動化特徵
+    
     return options
+
 
 def open_url(options, comic_num):
     driver = webdriver.Chrome(options=options)
@@ -26,6 +28,7 @@ def open_url(options, comic_num):
     driver.implicitly_wait(10) # 隱性等待
     driver.get(url)
     print("Page Title:", driver.title)
+    
     return driver
 
 
@@ -53,7 +56,7 @@ def run_scapre(driver, folder_name="manga_screenshots"):
 
         for img_element in image_elements:
             if img_element.is_displayed():
-                file_path = f"manga_page_{total_image_count}.png"
+                file_path = os.path.join(folder_name, f"manga_page_{total_image_count}.png")
                 img_element.screenshot(file_path)
                 total_image_count += 1
 
@@ -62,9 +65,25 @@ def run_scapre(driver, folder_name="manga_screenshots"):
             next_page.click()
             print("已點擊下一頁，等待畫面載入...")
             time.sleep(2)
+        
         except TimeoutException:
             print("【系統提示】找不到下一頁按鈕，已達最後一頁，結束爬取迴圈。")
             break
+    
+    return total_image_count
 
-print(f"已完成爬取，共 {total_image_count} 頁，關閉視窗。")
-driver.quit()
+
+# ==========================================================================================================================
+
+if __name__ == "__main__":
+    my_options = get_chrome_options()
+    my_driver = open_url(my_options, "157901")
+
+    try:
+        enter_reader(my_driver)
+        count = run_scapre(my_driver)
+        print(f"已成功爬取，共 {count} 頁。")
+
+    finally:
+        my_driver.quit()
+        print("瀏覽器已關閉")
